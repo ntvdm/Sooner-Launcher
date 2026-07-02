@@ -22,6 +22,12 @@ public class MainActivity extends Activity {
     private List<LauncherItem> mLauncherItems;
     private LauncherAdapter mAdapter;
 
+
+    private int dpToPx(int dp) {
+        float density = getResources().getDisplayMetrics().density;
+        return Math.round((float) dp * density);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,6 +35,9 @@ public class MainActivity extends Activity {
 
         mAppLabel = (TextView) findViewById(R.id.app_label);
         mGallery = (Gallery) findViewById(R.id.launcher_gallery);
+
+        int spacingPx = dpToPx(15);
+        mGallery.setSpacing(0);
 
         initLauncherItems();
 
@@ -52,23 +61,34 @@ public class MainActivity extends Activity {
 
                 // scaling animation loop
                 for (int i = 0; i < parent.getChildCount(); i++) {
+
                     View child = parent.getChildAt(i);
                     boolean isSelected = (child == view);
                     float targetScale = isSelected ? 1.0f : 0.75f;
-                    Float currentScale = (child.getTag() instanceof Float) ? (Float) child.getTag() : 0.75f;
 
-                    if (currentScale.floatValue() != targetScale) {
+                    // version check here too for the smmoooth scaling method
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
+                        child.setPivotX(child.getWidth() / 2f);
+                        child.setPivotY(child.getHeight()); // anchor to bottom
+                        child.animate()
+                                .scaleX(targetScale)
+                                .scaleY(targetScale)
+                                .setDuration(200)
+                                .start();
+                    } else {
+                        // ScaleAnimation for older
+                        Float currentScaleTag = (child.getTag() instanceof Float) ? (Float) child.getTag() : 0.75f;
+
                         ScaleAnimation anim = new ScaleAnimation(
-                                currentScale.floatValue(), targetScale,
-                                currentScale.floatValue(), targetScale,
+                                currentScaleTag, targetScale,
+                                currentScaleTag, targetScale,
                                 ScaleAnimation.RELATIVE_TO_SELF, 0.5f,
                                 ScaleAnimation.RELATIVE_TO_SELF, 1.0f
                         );
-
                         anim.setDuration(200);
                         anim.setFillAfter(true);
                         child.startAnimation(anim);
-                        child.setTag(Float.valueOf(targetScale));
+                        child.setTag(targetScale);
                     }
                 }
             }
@@ -85,7 +105,7 @@ public class MainActivity extends Activity {
                     try {
                         startActivity(intent);
                     } catch (Exception e) {
-                        // Fallback handling
+                        // fallback handling
                     }
                 }
             }
