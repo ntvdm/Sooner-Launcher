@@ -4,10 +4,13 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.ScaleAnimation;
 import android.widget.AdapterView;
-import android.widget.BaseAdapter;
 import android.widget.Gallery;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -110,6 +113,46 @@ public class MainActivity extends Activity {
                 }
             }
         });
+
+        // extend the screen
+        View root = findViewById(R.id.main_root);
+        root.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                // pass it to gallery
+                return mGallery.dispatchTouchEvent(event);
+            }
+        });
+    }
+
+    // wallpaper picker stuff
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        menu.add(0, 1, 0, "Wallpaper settings");
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == 1) {
+            // trigger system wallpaper picker
+            Intent intent = new Intent(Intent.ACTION_SET_WALLPAPER);
+            startActivity(Intent.createChooser(intent, "Select wallpaper :)"));
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    // menu key function (duh)
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_MENU) {
+            openOptionsMenu();
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     private void initLauncherItems() {
